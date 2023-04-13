@@ -7,7 +7,7 @@ pub use action::Action;
 pub use ai_response::AiResponse;
 
 use anyhow::Error;
-use crate::project_management::{Constraint, Details, Requirements, Risk, RiskDetails, SuccessCriteria};
+use crate::project_management::{Constraint, Details, Requirements, SuccessCriteria};
 use main_loop::{MainLoop, MainLoopAction};
 use serde::{Deserialize, Serialize};
 use serde_json::from_str;

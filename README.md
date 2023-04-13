@@ -13,8 +13,16 @@ Here is a gif of the Rustacean_GPT successfully creating a fibonacci generator. 
 
 1) You will need to add your OpenAI-API key to your environment so that [async-openai](https://github.com/64bit/async-openai) (which rustacean_gpt relies on), is able to make API calls to OpenAI in your behalf.
 2) Clone the repository.
-3) Edit `./.config/InitialSystemPrompt.txt` as desired. This will be sent as the `System` message in conversation history to the ChatGPT.
-4) Edit `./.config/HelpText.txt` as desired. This is additional text that will be sent when there are errors parsing ChatGPT's response.
-5) Edit `./.config/configuration.json` as desired. Note: I haven't tested the interactive session much - barely at all.
-6) Within `./src/main.rs` you will notice some code for creating the requirements. Use this for modifying the project requirements sent to ChatGPT. Other than the fibonacci generator I have not been able to get a successful project completed by ChatGPT.
-7) If you have ChatGPT-4 access you can change the model
+3) If you want to just see how it works, you can do `cargo run` at this point, otherwise use the following steps to customize to your desire.
+4) Edit `./.config/InitialSystemPrompt.txt` as desired. This will be sent as the `System` message in conversation history to the ChatGPT.
+5) Edit `./.config/HelpText.txt` as desired. This is additional text that will be sent when there are errors parsing ChatGPT's response.
+6) Edit `./.config/configuration.json` as desired. Note: I haven't tested the interactive session much - barely at all.
+7) Within `./src/main.rs` you will notice some code for creating the requirements. Use this for modifying the project requirements sent to ChatGPT. (I intend to make this a configuration setup so it's easier to swap out in the future).
+
+Once all of that is setup as you would like, `cargo run`!
+
+## Thoughts
+
+1) I only have access to `gpt-3.5-turbo`, and not v4. As such, I haven't been able to successfully get it to complete any projects more complicated than the fibonnaci generator. I did get close with a weather CLI tool.
+
+2) I am not a seasoned Rust programmer, so there are parts of the code that are a complete and utter mess. I intend to clean them up overtime.
