@@ -1,12 +1,10 @@
 mod action;
 mod ai_response;
-mod async_openai_extensions;
 mod main_loop;
 mod project_management;
 
 pub use action::Action;
 pub use ai_response::AiResponse;
-// pub use async_openai_extensions::OpenAIChatCompletionMessage;
 
 use anyhow::Error;
 use crate::project_management::{Constraint, Details, Requirements, Risk, RiskDetails, SuccessCriteria};

@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Error};
 use async_openai::{types::{ChatCompletionRequestMessage, ChatCompletionResponseMessage, CreateChatCompletionRequestArgs, Role}, Client, error::OpenAIError};
-use crate::{Action, AiResponse, Configuration, InteractionType}; //, OpenAIChatCompletionMessage};
+use crate::{Action, AiResponse, Configuration, InteractionType};
 use serde_json::{from_str, to_string_pretty, Value};
 use std::{fs::{File, OpenOptions, rename}, io::{Read, self, Write}, path::Path};
 use termion::color;
