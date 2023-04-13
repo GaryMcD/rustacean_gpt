@@ -90,6 +90,7 @@ pub(crate) struct Configuration {
     base_interactive_conversation_history_file_name: String,
     conversation_history_directory: String,
     interaction_type: InteractionType,
+    model: String,
 
     #[serde(skip)]
     initial_prompt: String,

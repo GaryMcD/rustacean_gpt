@@ -2,5 +2,6 @@
     "base_autonomous_conversation_history_file_name": "autonomous_history",
     "base_interactive_conversation_history_file_name": "interactive_history",
     "conversation_history_directory": "./.conversation_history",
-    "interaction_type": "Autonomous"
+    "interaction_type": "Autonomous",
+    "model": "gpt-3.5-turbo"
 }

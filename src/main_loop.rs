@@ -49,8 +49,7 @@ impl MainLoop {
                     let client = Client::new();
 
                     let request = CreateChatCompletionRequestArgs::default()
-                        .model("gpt-3.5-turbo")
-                        //.model("gpt-4-32k")
+                        .model(self.configuration.model.clone())
                         .messages(conversation_history)
                         .build()?;
 
