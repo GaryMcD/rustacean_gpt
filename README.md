@@ -21,8 +21,12 @@ Here is a gif of the Rustacean_GPT successfully creating a fibonacci generator. 
 
 Once all of that is setup as you would like, `cargo run`!
 
+Keep in mind, it runs continuously, so you will need to use `ctrl+c` to shut it down when you aren't happy with where it is going.
+
 ## Thoughts
 
 1) I only have access to `gpt-3.5-turbo`, and not v4. As such, I haven't been able to successfully get it to complete any projects more complicated than the fibonnaci generator. I did get close with a weather CLI tool.
 
 2) I am not a seasoned Rust programmer, so there are parts of the code that are a complete and utter mess. I intend to clean them up overtime.
+
+3) I didn't implement a good solution for when the conversation history get's too long and surpasses the token limit. This would be mitigated by using some sort of memory - but I haven't gotten there. If you see an ApiError, you can let it run if you would like, the code will keep track of the errors and delete past messages to cut down the token length.
