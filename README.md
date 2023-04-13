@@ -1,4 +1,7 @@
-# Rustacean_GPT
+<p align="center">
+  <img width="250" height="250" src="https://user-images.githubusercontent.com/16275325/231887923-efc485e4-2626-44b6-86eb-e1d9a0094d46.png">
+</p>
+<h1 align="center">Rustacean GPT</h1>
 
 Hello! Welcome to the home of `Rustacean_GPT`. This is my rust inspired version of [Auto-GPT](https://github.com/Torantulino/Auto-GPT). The entire source code is written in the rust programming language. Instead of purposing to make a generally assistive AI as Auto-GPT did, I have opted for creating one that focuses on being a software engineer. Although you could easy change this by adjusting your initial prompt. Feel free to clone and mess around. A demo is displayed below and some instructions to get you started as well.
 
