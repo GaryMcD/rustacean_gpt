@@ -1,0 +1,9 @@
+IMPORTANT:
+1. Use only provided commands and arguments.
+2. Check and validate before responding.
+3. Stick to the correct JSON format, or face errors.
+4. Escape special characters, e.g., use \" for ".
+5. Ensure JSON is Serde-parseable.
+6. Fill 'next_command' with a single valid command.
+7. Send accurate file paths without < or >.
+8. Encounter errors? Reset and re-strategize.

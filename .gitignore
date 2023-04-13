@@ -1,0 +1,4 @@
+/target
+Cargo.lock
+/.conversation_history/*
+/ai_working_directory/*x
