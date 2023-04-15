@@ -32,3 +32,16 @@ Remember, it runs non-stop, so use ctrl+c to bring it to a halt when you feel it
 1. Currently, I only have access to gpt-3.5-turbo, not v4. Because of this, Rustacean_GPT hasn't completed projects more complex than the Fibonacci generator. However, I did get close with a weather CLI tool! 🌦️
 2. I'm still learning the ropes of Rust, so some parts of the code might be a bit messy. Don't worry, I'll be tidying it up over time! 🧹
 3. I haven't yet implemented a solid solution for handling conversations that exceed the token limit. A memory system could help, but I haven't explored that yet. If you encounter an ApiError, feel free to let it run—the code will keep track of errors and delete past messages to reduce token length. 🪄
+
+<h3 align="center">To-Do List 📋</h3>
+
+Here is a list of my next several to-do items for this project. I'll update the progress using emoji checkboxes:
+
+:negative_squared_cross_mark: Giving the AI memory (at first through Pinecone)
+:white_check_mark: Integrate a token estimator
+:negative_squared_cross_mark: Refactoring `mainloop`.
+:negative_squared_cross_mark: Create a interactive command line tool for creating requirements.
+:negative_squared_cross_mark: Create a TUI for the entire thing.
+:negative_squared_cross_mark: Give the AI internet access.
+
+Feel free to contribute or share your ideas on how to improve Rustacean GPT! Your input is always welcome. 🤗
