@@ -37,11 +37,11 @@ Remember, it runs non-stop, so use ctrl+c to bring it to a halt when you feel it
 
 Here is a list of my next several to-do items for this project. I'll update the progress using emoji checkboxes:
 
-:negative_squared_cross_mark: Giving the AI memory (at first through Pinecone)
-:white_check_mark: Integrate a token estimator
-:negative_squared_cross_mark: Refactoring `mainloop`.
-:negative_squared_cross_mark: Create a interactive command line tool for creating requirements.
-:negative_squared_cross_mark: Create a TUI for the entire thing.
-:negative_squared_cross_mark: Give the AI internet access.
+- :negative_squared_cross_mark: Giving the AI memory (at first through Pinecone)
+- :white_check_mark: Integrate a token estimator
+- :negative_squared_cross_mark: Refactoring `mainloop`.
+- :negative_squared_cross_mark: Create a interactive command line tool for creating requirements.
+- :negative_squared_cross_mark: Create a TUI for the entire thing.
+- :negative_squared_cross_mark: Give the AI internet access.
 
 Feel free to contribute or share your ideas on how to improve Rustacean GPT! Your input is always welcome. 🤗
