@@ -2,6 +2,7 @@ mod action;
 mod ai_response;
 mod main_loop;
 mod project_management;
+mod tokenizer;
 
 pub use action::Action;
 pub use ai_response::AiResponse;
