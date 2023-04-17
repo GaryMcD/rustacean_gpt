@@ -1,13 +1,13 @@
 use termion::{color, style};
-use super::Action;
+use crate::action::Action;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct AiResponse {
-    thoughts: String,
-    reasoning: String,
-    plan_of_action: String,
-    constructive_criticism: String,
+    pub thoughts: String,
+    pub reasoning: String,
+    pub plan_of_action: String,
+    pub constructive_criticism: String,
     pub next_command: Action
 }
 
