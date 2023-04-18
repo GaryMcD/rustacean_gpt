@@ -42,7 +42,9 @@ Here is a list of my next several to-do items for this project. I'll update the 
   - ✅ Create Pinecone API interactions.
   - ✅ Give Pinecone struct memory trait.
   - ⬜ Integrate memory into application loop. 
-- ✅ Integrate a token estimator
+- ⬜ Create Token Estimator
+  - ✅ Find token estimator library (or implement manually).
+  - ⬜ Integrate token estimation into application loop.
 - ⬜ Refactoring `mainloop`.
   - ⬜ Create a struct/module just for AI actions.
   - ⬜ Extract AI actions out of mainloop.
