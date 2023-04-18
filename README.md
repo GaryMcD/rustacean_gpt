@@ -38,8 +38,16 @@ Remember, it runs non-stop, so use ctrl+c to bring it to a halt when you feel it
 Here is a list of my next several to-do items for this project. I'll update the progress using emoji checkboxes:
 
 - ⬜ Giving the AI memory (at first through Pinecone)
+  - ✅ Create memory module & trait.
+  - ✅ Create Pinecone API interactions.
+  - ✅ Give Pinecone struct memory trait.
+  - ⬜ Integrate memory into application loop. 
 - ✅ Integrate a token estimator
 - ⬜ Refactoring `mainloop`.
+  - ⬜ Create a struct/module just for AI actions.
+  - ⬜ Extract AI actions out of mainloop.
+  - ⬜ Create a struct/module for application (as whole, to get away from `mainloop` name).
+  - ⬜ Recreate application loop in new module.
 - ⬜ Create a interactive command line tool for creating requirements.
 - ⬜ Create a TUI for the entire thing.
 - ⬜ Give the AI internet access.
