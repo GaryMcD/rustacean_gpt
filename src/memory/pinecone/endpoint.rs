@@ -120,12 +120,12 @@ pub(super) enum PostResponse {
 
 #[derive(Deserialize, Serialize)]
 pub(super) struct CreateIndexParameters {
-    name: String,
-    dimension: u32,
-    metric: String, // TODO: Make enum
-    pods: u32,
-    replicas: u32,
-    pod_type: String // TODO: Make enum
+    pub(super) name: String,
+    pub(super) dimension: u32,
+    pub(super) metric: String, // TODO: Make enum
+    pub(super) pods: u32,
+    pub(super) replicas: u32,
+    pub(super) pod_type: String // TODO: Make enum
 }
 
 #[derive(Deserialize, Serialize)]
@@ -138,10 +138,10 @@ pub(super) struct QueryMatch {
 
 #[derive(Clone, Deserialize, Serialize)]
 pub(super) struct QueryParameters {
-    topK: u8,
-    includeValues: bool,
-    includeMetadata: bool,
-    vector: Vec<f64>
+    pub(super) topK: u8,
+    pub(super) includeValues: bool,
+    pub(super) includeMetadata: bool,
+    pub(super) vector: Vec<f64>
 }
 
 #[derive(Deserialize, Serialize)]
@@ -163,8 +163,8 @@ pub(super) struct UpsertDataParameters {
 
 #[derive(Clone, Deserialize, Serialize)]
 pub(super) struct Vector {
-    id: String,
-    values: Vec<f64>
+    pub(super) id: String,
+    pub(super) values: Vec<f64>
 }
 
 #[derive(Deserialize, Serialize)]
