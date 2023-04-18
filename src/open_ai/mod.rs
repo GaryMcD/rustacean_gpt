@@ -10,7 +10,7 @@ pub async fn get_embedding(text: &str) -> Result<Vec<f32>, Error> {
     let client = Client::new();
 
     let request = CreateEmbeddingRequestArgs::default()
-        .model("text-embedding-ada-002") // TODO: 
+        .model("text-embedding-ada-002") // TODO: make this part of configuration
         .input([text])
         .build()?;
 
