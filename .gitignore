@@ -1,4 +1,5 @@
 /target
 Cargo.lock
-/.conversation_history/*
 /ai_working_directory/*
+/config/configuration.json
+/src_old/*
