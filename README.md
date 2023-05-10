@@ -17,7 +17,7 @@ Feast your eyes on this delightful gif of Rustacean GPT successfully crafting a 
 
 1. Clone the repository. 📁
 2. Adjust `./config/configuration.json`. An example configuration file is provided for your reference. 🔧
-3. Customize `./.config/InitialSystemPrompt.txt` as you wish. This will be sent as the System message in conversation history to ChatGPT. 💬
+3. Customize `./config/InitialSystemPrompt.txt` as you wish. This will be sent as the System message in conversation history to ChatGPT. 💬
 
 Once everything is set up just right, cargo run and enjoy the ride! 🎢
 
