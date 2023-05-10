@@ -1,9 +1,12 @@
+// src/memory/pinecone/api.rs
+
 use anyhow::{anyhow, Error};
 use reqwest::header::{ACCEPT, CONTENT_TYPE, HeaderMap, HeaderValue};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-pub(super) enum Endpoint {
+#[derive(Debug)]
+pub enum Endpoint{
     CreateIndex(String, CreateIndexParameters),
     DescribeIndex(String, String),
     IndexStatistics(String, String, String),
@@ -14,7 +17,7 @@ pub(super) enum Endpoint {
 }
 
 impl Endpoint {
-    pub(super) async fn get(&self, api_key: &str) -> Result<Value, Error> {
+    pub async fn get(&self, api_key: &str) -> Result<Value, Error> {
         let headers = self.get_headers(api_key);
         let url = self.get_endpoint_url();
         let client = reqwest::Client::new();
@@ -34,7 +37,7 @@ impl Endpoint {
             Self::CreateIndex(region, _) => format!("https://controller.{}.pinecone.io/databases", region),
             Self::DescribeIndex(region, index_name) => format!("https://controller.{}.pinecone.io/databases/{}", region, index_name),
             Self::IndexStatistics(index_name, project_name, region) => format!("https://{}-{}.svc.{}.pinecone.io/describe_index_stats", index_name, project_name, region),
-            Self::ListIndexes(region) => format!("https://controller.{}.pinecone.io/databases", region),
+            Self::ListIndexes(region) => format!("https://controller.{}.pinecone.io/databases", &region),
             Self::Query(index_name, project_name, region, _) => format!("https://{}-{}.svc.{}.pinecone.io/query", index_name, project_name, region),
             Self::Upsert(index_name, project_name, region, _) => format!("https://{}-{}.svc.{}.pinecone.io/vectors/upsert", index_name, project_name, region),
             Self::WhoAmI(region) => format!("https://controller.{}.pinecone.io/actions/whoami", region)
@@ -43,7 +46,7 @@ impl Endpoint {
 
     fn get_headers(&self, api_key: &str) -> HeaderMap {
         let mut headers = HeaderMap::new();
-        headers.insert("Api-Key", HeaderValue::from_str(api_key).unwrap());
+        headers.insert("Api-Key", HeaderValue::from_str(&api_key).unwrap());
 
         let (accept_header, content_type_header) = match self {
             Self::CreateIndex(_,_) | Self::IndexStatistics(_,_,_) | Self::Upsert(_,_,_,_) => 
@@ -86,15 +89,16 @@ impl Endpoint {
         headers
     }
 
-    pub(super) async fn post(&self, api_key: &str, response_type_desired: PostResponse) -> Result<Value, Error> {
+    pub async fn post(&self, api_key: &str, response_type_desired: &PostResponse) -> Result<Value, Error> {
         let headers = self.get_headers(api_key);
         let url = self.get_endpoint_url();
         let client = reqwest::Client::new();
     
         let data = match self {
             Self::CreateIndex(_, parameters) => serde_json::to_string(parameters)?,
+            Self::Query(_, _, _, parameters) => serde_json::to_string(parameters)?,
             Self::Upsert(_, _, _, parameters) => serde_json::to_string(parameters)?,
-            _ => return Err(anyhow!("Cannot post to this endpoint."))
+            _ => return Err(anyhow!(format!("Cannot post to this endpoint. {:?}", self)))
         };
 
         let response = client.post(url)
@@ -112,64 +116,79 @@ impl Endpoint {
     }
 }
 
-
-pub(super) enum PostResponse {
+pub enum PostResponse {
     Json,
     Text
 }
 
-#[derive(Deserialize, Serialize)]
-pub(super) struct CreateIndexParameters {
-    pub(super) name: String,
-    pub(super) dimension: u32,
-    pub(super) metric: String, // TODO: Make enum
-    pub(super) pods: u32,
-    pub(super) replicas: u32,
-    pub(super) pod_type: String // TODO: Make enum
+#[derive(Debug, Deserialize, Serialize)]
+pub struct CreateIndexParameters {
+    pub name: String,
+    pub dimension: u32,
+    pub metric: String, // TODO: Make enum
+    pub pods: u32,
+    pub replicas: u32,
+    pub pod_type: String // TODO: Make enum
 }
 
-#[derive(Deserialize, Serialize)]
-pub(super) struct QueryMatch {
+#[derive(Debug, Deserialize, Serialize)]
+pub struct QueryMatch {
+    pub values: Vec<f32>,
+    pub metadata: VectorMetadata,
+
+    #[serde(rename = "sparseValues")]
+    sparse_values: Option<QuerySparseValue>,
+
     id: String,
-    score: f64,
-    pub(super) values: Vec<f64>,
-    sparseValues: QuerySparseValue
+    score: f64
 }
 
-#[derive(Clone, Deserialize, Serialize)]
-pub(super) struct QueryParameters {
-    pub(super) topK: u8,
-    pub(super) includeValues: bool,
-    pub(super) includeMetadata: bool,
-    pub(super) vector: Vec<f64>
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct QueryParameters {
+    #[serde(rename = "includeValues")]
+    pub include_values: bool,
+
+    #[serde(rename = "includeMetadata")]
+    pub include_metadata: bool,
+
+    #[serde(rename = "topK")]
+    pub top_k: u8,
+
+    pub vector: Vec<f32>
 }
 
-#[derive(Deserialize, Serialize)]
-pub(super) struct QueryResponse {
-    pub(super) matches: Vec<QueryMatch>,
+#[derive(Debug, Deserialize, Serialize)]
+pub struct QueryResponse {
+    pub matches: Vec<QueryMatch>,
     namespace: String
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct QuerySparseValue {
+    indices: Vec<f32>,
+    values: Vec<f32>
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct UpsertDataParameters {
+    pub vectors: Vec<Vector>
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct Vector {
+    pub id: String,
+    pub values: Vec<f32>,
+    pub metadata: VectorMetadata
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct VectorMetadata {
+    pub raw_text: String
+}
+
 #[derive(Deserialize, Serialize)]
-pub(super) struct QuerySparseValue {
-    indices: Vec<u64>,
-    values: Vec<f64>
-}
-
-#[derive(Clone, Deserialize, Serialize)]
-pub(super) struct UpsertDataParameters {
-    pub(super) vectors: Vec<Vector>
-}
-
-#[derive(Clone, Deserialize, Serialize)]
-pub(super) struct Vector {
-    pub(super) id: String,
-    pub(super) values: Vec<f64>
-}
-
-#[derive(Deserialize, Serialize)]
-pub(super) struct WhoAmIResponse {
-    pub(super) project_name: String,
+pub struct WhoAmIResponse {
+    pub project_name: String,
     user_label: String,
     user_name: String
 }

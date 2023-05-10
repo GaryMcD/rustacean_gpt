@@ -1,123 +1,100 @@
-mod action;
-mod main_loop;
-mod open_ai;
-mod project_management;
+// src/main.rs
 
-pub use action::Action;
+mod agent;
+mod configuration;
+mod memory;
+mod system;
+mod user;
 
+use agent::{Agent, openai::GPT};
 use anyhow::Error;
-use crate::project_management::{Constraint, Details, Requirements, SuccessCriteria};
-use main_loop::{MainLoop, MainLoopAction};
-use serde::{Deserialize, Serialize};
-use serde_json::from_str;
-use std::{fs::{OpenOptions, read_dir, read_to_string, remove_dir, remove_file}, io::{stdout, Write}};
-use termion::{clear, cursor};
+use configuration::{AgentConfiguration, ApplicationConfiguration, get_initial_prompt, MemoryConfiguration};
+use inquire::Text;
+use memory::{Memory, Pinecone};
+use system::{add_chats_to_conversation, application_loop, Chat, conversation, Conversation, Whom};
+use tokio;
+
+
+const CONFIGURATION_FILE_PATH: &str = "./config/configuration.json";
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
+    let (
+        application_configuration, 
+        agent, 
+        mut memory
+    ) = initialize().await?;
 
-    let mut stdout = stdout();
-    write!(stdout, "{}{}", clear::All, cursor::Goto(1, 1)).unwrap();
-    stdout.flush().unwrap();
-
-    let requirements = Requirements {
-        stakeholder_needs: vec![
-            "Print the Fibonnaci Sequence to an N depth.".to_string(),
-            "N should be provided as a cli argument when calling your project".to_string(),
-        ],
-        functional_requirements: vec![],
-        non_functional_requirements: vec![],
-        constraints: vec![
-            Constraint::Technology(Details {
-                name: "Rust programming language".to_string(),
-                details: "The application must be written in the Rust programming language.".to_string(),
-                lower_bound: None,
-                upper_bound: None,
-            }),
-        ],
-        risks: vec![],
-        success_criteria: vec![
-            SuccessCriteria::QualityAssurance(Details {
-                name: "Functionality correctness".to_string(),
-                details: "The application should correctly print the Fibonacci Sequence.".to_string(),
-                lower_bound: None,
-                upper_bound: None,
-            }),
-            SuccessCriteria::QualityAssurance(Details {
-                name: "Functionality correctness".to_string(),
-                details: "The application should print to the correct depth.".to_string(),
-                lower_bound: None,
-                upper_bound: None,
-            }),
-        ],
-    };
-
-    delete_dir_contents("./ai_working_directory")?;
-
-    let mut requirements_file = OpenOptions::new()
-        .write(true)
-        .create(true)
-        .append(false)
-        .open("./ai_working_directory/requirements.json")?;
-
-    let requirements = serde_json::to_string(&requirements)?;
-
-    requirements_file.write_all(requirements.as_bytes())?;
-
-    let configuration_file_contents = read_to_string(".config/configuration.json")?;
-    let mut configuration: Configuration = from_str(&configuration_file_contents)?;
-    
-    configuration.initial_prompt = read_to_string(".config/InitialSystemPrompt.txt")?;
-    configuration.help_text_for_ai_parsing_errors = read_to_string(".config/HelpText.txt")?;
-
-    let mut app = MainLoop::new(configuration)?;
-
-    'main: loop {
-        app.take_action().await?;
-        match app.current_action {
-            MainLoopAction::Exit => break 'main,
-            _ => ()
-        }
-    }
+    application_loop(&application_configuration, agent, &mut memory).await?;
 
     Ok(())
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub(crate) struct Configuration {
-    base_autonomous_conversation_history_file_name: String,
-    base_interactive_conversation_history_file_name: String,
-    conversation_history_directory: String,
-    interaction_type: InteractionType,
-    model: String,
+async fn get_conversation(application_configuration: &ApplicationConfiguration) -> Result<Conversation, Error> {
+    let conversation_file_path = &application_configuration.system.conversation_file_path;
+    match conversation(conversation_file_path).await? {
+        Some(conversation) => Ok(conversation),
+        None => {
+            let initial_prompt_getter = get_initial_prompt(&application_configuration.system.initial_prompt);
+            let objective_getter = get_objective();
 
-    #[serde(skip)]
-    initial_prompt: String,
+            let (initial_prompt, objective) = tokio::join!(initial_prompt_getter, objective_getter);
+            let chats = vec![
+                Chat { text: initial_prompt?, whom: Whom::System },
+                Chat { text: objective?, whom: Whom::User }
+            ];
 
-    #[serde(skip)]
-    help_text_for_ai_parsing_errors: String,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub(crate) enum InteractionType {
-    Autonomous,
-    Interactive,
-}
-
-fn delete_dir_contents(path: &str) -> std::io::Result<()> {
-    let path = std::path::PathBuf::from(path);
-
-    for entry in read_dir(&path)? {
-        let entry = entry?;
-        let entry_path = entry.path();
-
-        if entry_path.is_file() {
-            remove_file(&entry_path)?;
-        } else {
-            delete_dir_contents(entry_path.to_str().unwrap())?;
-            remove_dir(&entry_path)?;
+            add_chats_to_conversation(conversation_file_path, chats).await
         }
     }
+}
 
-    Ok(())
+async fn get_objective() -> Result<String, Error> {
+    let objective_prompt = Text::new("What is your objective for Rustacean-GPT?").prompt();
+    match objective_prompt {
+        Ok(objective) => Ok(format!("Your Objective: {}", objective)),
+        Err(e) => Err(Error::from(e))
+    }
+}
+
+async fn initialize() -> Result<(ApplicationConfiguration, Box<dyn Agent>, Box<dyn Memory>), Error> {
+    let application_configuration = load_configuration().await?;
+
+    let agent_init = initialize_agent(&application_configuration.agent);
+    let memory_init = initialize_memory(&application_configuration.memory);
+    let conversation_getter = get_conversation(&application_configuration);
+
+    let (agent, memory, conversation) = tokio::join!(agent_init, memory_init, conversation_getter);
+    let agent = agent?;
+    let memory = memory?;
+    let _ = conversation?;
+
+    Ok((application_configuration, agent, memory))
+}
+
+async fn initialize_agent(agent_condiguration: &AgentConfiguration) -> Result<Box<dyn Agent>, Error> {
+    match agent_condiguration {
+        AgentConfiguration::OpenAIAgentConfiguration(openai_agent_configuration) => {
+            let mut agent = GPT::new(openai_agent_configuration);
+            agent.initialize().await?;
+            Ok(agent)
+        }
+    }
+}
+
+async fn initialize_memory(memory_configuration: &MemoryConfiguration) -> Result<Box<dyn Memory>, Error> {
+    match memory_configuration {
+        MemoryConfiguration::PineconeConfiguration(pinecone_memory_configuration) => {
+            let mut memory = Pinecone::new(pinecone_memory_configuration);
+            memory.initialize().await?;
+            Ok(memory)
+        }
+    }
+}
+
+async fn load_configuration() -> Result<ApplicationConfiguration, Error> {
+    match configuration::load_configuration(CONFIGURATION_FILE_PATH).await {
+        Ok(config) => Ok(config),
+        Err(e) => Err(Error::from(e)),
+    }
 }

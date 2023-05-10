@@ -1,37 +1,49 @@
-mod endpoint;
+// src/memory/pinecone/mod.rs
+
+mod api;
+mod index;
 mod pinecone;
+
+pub(super) use api::{CreateIndexParameters, Endpoint, PostResponse, QueryParameters, QueryResponse, UpsertDataParameters, Vector, WhoAmIResponse};
+pub(super) use index::Index;
 pub use pinecone::Pinecone;
 
-use anyhow::Error;
+use anyhow::{anyhow, Error};
 use async_trait::async_trait;
-use endpoint::{QueryParameters, UpsertDataParameters, Vector};
-use termion::{color, style};
+use self::api::VectorMetadata;
+
+use super::{Memory, memory_data::MemoryData};
 
 #[async_trait]
-impl super::Memory for Pinecone {
-    async fn add_memory(&mut self, memory: Vec<f64>) -> Result<(), Error> {
-        let vector_id = self.vector_count().to_string();
-        let vector = Vector {
-            id: vector_id,
-            values: memory
-        };
+impl Memory for Pinecone {
+    async fn add_memory(&mut self, memory: MemoryData) -> Result<(), Error> {
 
-        let upsert_data = UpsertDataParameters {
-            vectors: vec![vector]
+        let id = match self.vector_count {
+            Some(count) => count.to_string(),
+            None => return Err(anyhow!("Must have vector count so as to have vector id for adding memory."))
         };
+        let values = memory.0.0;
+        let raw_text = memory.1;
+        let metadata = VectorMetadata { raw_text };
+        let vector = Vector { id, values, metadata };
+
+        let upsert_data = UpsertDataParameters { vectors: vec![vector] };
 
         Ok(self.upsert(upsert_data).await?)
     }
 
-    async fn add_memories(&mut self, memories: Vec<Vec<f64>>) -> Result<(), Error> {
+    async fn add_memories(&mut self, memories: Vec<MemoryData>) -> Result<(), Error> {
         let mut vectors = vec![];
 
         for (index, memory) in memories.iter().enumerate() {
-            let vector_id = (self.vector_count() + index as u32).to_string();
-            let vector = Vector {
-                id: vector_id,
-                values: memory.clone()
+            let id = match self.vector_count {
+                Some(count) => (count + index as u32).to_string(),
+                None => return Err(anyhow!("Must have vector count so as to have vector id for adding memory."))
             };
+            let values = memory.0.0.clone();
+            let raw_text = memory.1.clone();
+            let metadata = VectorMetadata { raw_text };
+            let vector = Vector { id, values, metadata };
 
             vectors.push(vector);
         }
@@ -40,26 +52,20 @@ impl super::Memory for Pinecone {
 
         Ok(self.upsert(upsert_data).await?)
     }
-    
-    async fn get_similar_memories(&self, related_thought: Vec<f64>) -> Result<Vec<Vec<f64>>, Error> {
-        let topK = 10; // TODO: make part of configuration
-        let includeValues = true;
-        let includeMetadata = false;
-        let vector = related_thought;
 
-        let query = QueryParameters { topK, includeValues, includeMetadata, vector };
+    async fn get_similar_memories(&self, related_thought: MemoryData) -> Result<Vec<MemoryData>, Error> {
+        let top_k = self.similar_memories_count;
+        let include_values = true;
+        let include_metadata = true;
+        let vector = related_thought.0.0;
+
+        let query = QueryParameters { top_k, include_values, include_metadata, vector };
 
         Ok(self.query(query).await?)
     }
 
-    fn print(&self) {
-        println!("{}{}{}Index{}: {}{}{}", style::Underline, style::Bold, color::Fg(color::Blue), style::Reset, color::Fg(color::LightBlue), self.index_name, color::Fg(color::Reset));
-        println!("{}{}{}Project{}: {}{}{}", style::Underline, style::Bold, color::Fg(color::Blue), style::Reset, color::Fg(color::LightBlue), self.project_name, color::Fg(color::Reset));
-        println!("{}{}{}Region{}: {}{}{}", style::Underline, style::Bold, color::Fg(color::Blue), style::Reset, color::Fg(color::LightBlue), self.region, color::Fg(color::Reset));
-        println!("{}{}{}Vector Count{}: {}{}{}", style::Underline, style::Bold, color::Fg(color::Blue), style::Reset, color::Fg(color::LightBlue), self.vector_count, color::Fg(color::Reset));
-    }
-
-    async fn ready(&self) -> Result<bool, Error> {
-        Ok(self.index_ready().await?)
+    async fn initialize(&mut self) -> Result<(), Error> {
+        self.initialize().await?;
+        Ok(())
     }
 }

@@ -1,0 +1,24 @@
+{
+    "agent": {
+        "OpenAIAgentConfiguration": {
+            "api_key": "",
+            "embedding_model": "Ada002",
+            "model": "GPT4",
+            "tokens_reserved_for_history": 3500,
+            "tokens_reserved_for_memories": 3000
+        }
+    },
+    "memory": {
+        "PineconeConfiguration": {
+            "api_key": "",
+            "index_name": "rustacean-gpt",
+            "region": "us-east1-gcp",
+            "similar_memories_count": 20
+        }
+    },
+    "system": {
+        "conversation_file_path": "./config/conversation.json",
+        "initial_prompt": { "File": { "path": "./config/InitialSystemPrompt.txt" } },
+        "working_directory": "./ai_working_directory"
+    }
+}
